@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Notes App Test</title>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Notes App Nathan Test</h1>
+		</div>
+
+		<div id="note-container" class="container">
+			<form>
+				<input type="text" id="the-note" />
+				<button id="input-note" type="submit">Add Note</button>
+			</form>
+		</div>
+		<div class="container">
+			<ul id="notes-list">
+				<!-- appends li element -->
+			</ul>
+		</div>
+	</body>
+
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: Helvetica;
+		}
+
+		.addnote-holder {
+			display: flex;
+			flex-direction: row;
+			gap: 0.5rem;
+		}
+
+		.container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding-top: 2rem;
+			padding-bottom: 2rem;
+		}
+
+		.container h1 {
+			text-align: center;
+		}
+
+		li {
+			list-style: none;
+		}
+
+		.li-note {
+			margin-bottom: 5px;
+		}
+
+		.hide {
+			display: none;
+		}
+	</style>
+
+	<script>
+		function getRandomInt() {
+			return Math.floor(Math.random() * 100000);
+		}
+
+		const noteList = document.getElementById("notes-list");
+		const theNote = document.getElementById("the-note");
+		const form = document.querySelector("form");
+
+		form.addEventListener("submit", (e) => {
+			e.preventDefault();
+
+			const noteValue = theNote.value.toLowerCase();
+
+			if (noteValue) {
+				const notes = JSON.parse(localStorage.getItem("notes")) || [];
+				notes.push({
+					id: getRandomInt(),
+					text: noteValue,
+				});
+				localStorage.setItem("notes", JSON.stringify(notes));
+
+				generateNotes(notes);
+
+				theNote.value = "";
+			}
+		});
+
+		function generateNotes(notes) {
+			noteList.innerHTML = "";
+
+			notes.forEach((note) => {
+				const noteContent = `
+                <li class="li-note">
+                    <button data-id="${note.id}" onclick="editNote(${note.id})">Edit note</button>
+                    <button data-id="${note.id}" onclick="saveNote(${note.id})" class="hide" id="save-btn">Save Changes</button>
+                    <input value="${note.text}" data-id="${note.id}" disabled>
+                    <button data-id="${note.id}" onclick="deleteNote(${note.id})">Delete Note</button>
+                </li>
+                `;
+				noteList.innerHTML += noteContent;
+			});
+		}
+
+		function editNote(id) {
+			const input = document.querySelector(`input[data-id='${id}']`);
+			input.removeAttribute("disabled");
+			const saveBtn = document.querySelector(`#save-btn[data-id='${id}']`);
+			saveBtn.classList.remove("hide");
+			console.log(input);
+		}
+
+		function saveNote(id) {
+			const input = document.querySelector(`input[data-id='${id}']`);
+			input.setAttribute("disabled", true);
+			const saveBtn = document.querySelector(`#save-btn[data-id='${id}']`);
+			saveBtn.classList.add("hide");
+
+			const notes = JSON.parse(localStorage.getItem("notes")) || [];
+			const newNotes = notes.map((note) => {
+				if (parseInt(note.id) === parseInt(id)) {
+					note.text = input.value;
+				}
+
+				return note;
+			});
+
+			localStorage.setItem("notes", JSON.stringify(newNotes));
+			generateNotes(newNotes);
+		}
+
+		const notes = JSON.parse(localStorage.getItem("notes")) || [];
+		generateNotes(notes);
+
+		function deleteNote(id) {
+			const notes = JSON.parse(localStorage.getItem("notes")) || [];
+
+			const newNotes = notes.filter(
+				(note) => parseInt(note.id) !== parseInt(id)
+			);
+
+			localStorage.setItem("notes", JSON.stringify(newNotes));
+			generateNotes(newNotes);
+		}
+	</script>
+</html>
